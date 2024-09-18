@@ -1,12 +1,12 @@
 =================
 Project
 =================
-Efficient-Eigenvalue-Approximation-using-Gersgorin-Theorem-and-PCA-for-Dimensionality-Reduction 
+EEigenApproWithGersgorin
 
 Basic Information
 =================
 
-GitHub repository :https://github.com/LienShark/Efficient-Eigenvalue-Approximation-using-Gersgorin-Theorem-and-PCA-for-Dimensionality-Reduction
+GitHub repository :https://github.com/LienShark/EigenApproWithGersgorin
 About:I will try to use Gersgorin Theorem to find eigenvalue approximation to do spectral,
 hope can speed up PCA compression as much as possible while sacrificing the least accuracy,
 then provide APIs for related applications that will be used!
