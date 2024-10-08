@@ -1,151 +1,188 @@
-#################
+###############################
 EigenApproWithGersgorin
-#################
+###############################
 
-
-#################
+###############################
 Basic Information
-#################
+###############################
 
-* **Term Project: Eigenvalue Approximation Using Gersgorin Theorem
-  This project focuses on approximating eigenvalues of large matrices using the Gersgorin Circle Theorem.
-  The approach includes dimensionality reduction techniques like PCA and SVD. 
-  My goal is to first write my own PCA and SVD methods and aim for them to be faster than existing packages. 
-  After learning how to implement PCA and SVD, I hope to apply my mathematical knowledge of the Gersgorin Theorem 
-  to see if the approximation method can be faster. 
-  The repository contains the code and detailed explanation for applying this method to practical datasets.
-  GitHub repository :https://github.com/LienShark/EigenApproWithGersgorin
-* **About:
-  First step:
-    I will first try to write the basic spectral decomposition and SVD code to use in PCA, and find out the problems in the field (ML/Finance/Genetic information)
-    where I want to test the effect as a test case, and record the time and results of this approach.
+**Term Project: Eigenvalue Approximation Using Gersgorin Theorem**
 
-  second step:
-    I will try to use Gersgorin Theorem to find eigenvalue approximation to do spectral,
-    hope can speed up PCA compression as much as possible while sacrificing the least accuracy,
-    then provide APIs for related applications that will be used!
-    In my imagination, if the matrix dimensions to be processed today reach the level of millions of rows and columns,
-    it may be very troublesome and slow to calculate the eigenvalues!
-    So I thought about the matrix theory course I took in college, in which Gersgorin Theorem mentioned 
-    that all eigenvalues ​​will fall within certain specific circles.
-    I thought if I could shrink this circle as much as possible through other methods 
-    (or is not narrowed, but the guess is accurate enough within the range) 
-    I have the opportunity to avoid the tedious calculation of eigenvalues ​​and further do PCA
+This project focuses on approximating eigenvalues of large matrices using the Gersgorin Circle Theorem.  
+The approach includes dimensionality reduction techniques like PCA and SVD.  
+The goal is to first write my own PCA and SVD methods, aiming for faster performance than existing packages.  
+After implementing PCA and SVD, I plan to apply my mathematical knowledge of the Gersgorin Theorem  
+to see if this approximation method can be faster. The repository contains the code and detailed explanation  
+for applying this method to practical datasets.
 
-  Final step:
-    I will compare two method, and analysis it!
-    And the baseline will be:
-      1.SVD Baseline: The Singular Value Decomposition (SVD) baseline is implemented using the numpy.linalg.svd() 
-      function from the NumPy library
-      2.PCA Baseline: For Principal Component Analysis (PCA), we use the sklearn.decomposition.PCA() 
-      function from the Scikit-learn library.
- 
+GitHub repository: https://github.com/LienShark/EigenApproWithGersgorin
 
+**About:**
+
+**First Step:**  
+I will begin by writing basic spectral decomposition and SVD code to use in PCA.  
+I will also identify problem areas in fields such as Machine Learning (ML), Finance, or Genetic Information,  
+where I can test this approach and record both the time and results of this method.
+
+**Second Step:**  
+Using the Gersgorin Theorem, I will attempt to approximate eigenvalues and perform spectral decomposition,  
+with the goal of speeding up PCA compression while minimizing accuracy loss.  
+Then, I will provide APIs for related applications.  
+For matrices with millions of rows and columns, eigenvalue calculation can be slow and cumbersome.  
+The Gersgorin Theorem states that all eigenvalues fall within certain specific circles.  
+By shrinking these circles or guessing accurately within their range, I aim to avoid the tedious eigenvalue computation  
+and further improve PCA efficiency.
+
+**Final Step:**  
+I will compare the two methods (traditional SVD/PCA and Gersgorin-based approach) and analyze the results.
+
+The baseline methods will be:
+1. **SVD Baseline:** Implemented using the `numpy.linalg.svd()` function from NumPy.
+2. **PCA Baseline:** Using the `sklearn.decomposition.PCA()` function from Scikit-learn.
+
+
+######################
 Problem to Solve
-================
-First, I will learn how to do SVD decomposition and spectral decomposition for use in PCA.
-I will also survey the current methods of SVD decomposition and spectral decomposition, compare and improve them.
-second,I hope I still have time to add Gersgorin Theorem's method to compare and see if 
-I can sacrifice some accuracy for faster speed.
+######################
 
-So,the project has two tasks want to reach,first is speed up the PCA and SVD decomposition,
-the second aims to solve the problem of calculating eigenvalues ​​and dimensionality reduction of 
-large matrices. This problem is very common in machine learning, numerical linear algebra 
-and scientific computing. Especially in natural language processing (NLP), genetic data analysis 
-and big data processing, as the size of data grows, the limitations of existing tools 
-in terms of speed and memory consumption become increasingly obvious.
+First, I will learn to perform SVD and spectral decomposition for PCA.  
+I will also survey current methods, comparing and improving them.  
+In the second phase, I hope to integrate the Gersgorin Theorem to compare results,  
+aiming to trade some accuracy for increased speed.
 
-We will apply Gersgorin Theorem to estimate the eigenvalues ​​of large matrices, 
-and then perform dimensionality reduction through principal component analysis (PCA)
+This project has two main objectives:
+1. **Speeding up PCA and SVD decomposition.**
+2. **Addressing the challenge of eigenvalue computation and dimensionality reduction for large matrices.**
 
-Introduce of Gersgorin Theorem:s a theory used to approximate the eigenvalues ​​of matrices. 
-This theorem states that given a complex matrix A ,All eigenvalues ​​of a matrix lie within some specific disks on the plane, 
-these disks are called Gersgorin disks.
+These challenges are common in machine learning, numerical linear algebra, and scientific computing,  
+especially in areas such as NLP, genetic data analysis, and big data processing. As dataset sizes increase,  
+existing tools often struggle with speed and memory limitations.
 
+By applying the Gersgorin Theorem, I will estimate eigenvalues for large matrices and use PCA for dimensionality reduction.
+
+### Introduction to the Gersgorin Theorem:
+The Gersgorin Theorem approximates the eigenvalues of matrices.  
+It states that all eigenvalues of a matrix lie within specific disks (called Gersgorin disks) on the complex plane.
+
+
+######################
 Prospective Users
-=================
-I expect that the calculation time can be shortened and efficiency improved in data-intensive research 
-(such as genetic data analysis, text analysis of large corpora). Since I have reduced the accuracy a little 
-in exchange for faster calculation speed, I expect I hope that my project can serve as a pilot test for 
-these data-intensive research ideas; I also hope that it can enable personal computers to do tasks such as 
-training large-scale NLP.
+######################
 
-In addition, I will also apply it to financial modeling, machine learning and big data processing, 
-and use my project to reduce memory and computing costs in the data processing process. 
-I hope it can have more practical application value.
+I expect this approach to shorten computation times and improve efficiency in data-intensive research,  
+such as genetic data analysis and text analysis of large corpora.  
+Since my approach sacrifices some accuracy for faster speed, it could be especially valuable for tasks like large-scale NLP training on personal computers.
 
-And the baseline will be the method mentioned above from my survey
-and the traditional svd decomposition and spectral decomposition that I have improved.
+Additionally, I will explore applications in financial modeling, machine learning, and big data processing.  
+My goal is to reduce memory and computing costs during data processing, giving the project practical application value.
+
+The baseline methods will include traditional SVD and spectral decomposition methods, which I aim to improve.
 
 
+######################
 System Architecture
-===================
+######################
 
-1.input and output
-  input:(massive) matrix , When inputting a larger matrix, 
-  I plan to use either Incremental SVD or memory mapping to address memory limitations. 
-  I am not yet certain which approach will be better, so I will experiment to find the optimal solution. 
-  The goal is to determine which method is more suitable for handling large matrix inputs.
-  Regarding the matrix size of one million rows, I derived this number from large language model datasets. 
-  Initially, I will experiment with smaller matrices to ensure feasibility. However, 
-  my ultimate goal is to work with matrices of this scale. If this proves too impractical, 
-  I would be open to suggestions and feedback on how to adjust my approach.
-  output:
-    1.The low-dimensional matrix reduced by PCA and SVD with general solution(means not approximate)
-    2.The approximate eigenvalues ​​estimated by Gersgorin Theorem, and the low-dimensional matrix reduced by PCA
-2.System process
-  2.1 Read the input matrix and preprocess it.
-  2.2 Use Gersgorin Theorem to calculate the approximate range of eigenvalues.
-  2.3 Base on Gersgorin Theorem to guess approximate eigenvalues,the solution TBD.
-  2.4 Apply PCA for dimensionality reduction.
-  2.5 Output the results to the Python API for subsequent analysis by users.
-3.Module division
-  Eigenvalue estimation module
-  Dimensionality reduction module
-  API module
+**1. Input and Output:**
 
+- **Input:**  
+  Massive matrices.  
+  For larger matrices, I plan to experiment with either Incremental SVD or memory mapping to address memory limitations.  
+  I will start with smaller matrices to ensure feasibility but aim to work with million-row matrices eventually.  
+  If that proves impractical, I will adjust my approach accordingly.
+
+- **Output:**  
+  1. The low-dimensional matrix reduced by PCA and SVD (non-approximate).
+  2. Approximate eigenvalues estimated using the Gersgorin Theorem, and the low-dimensional matrix reduced by PCA.
+
+**2. System Process:**
+
+  2.1. Read the input matrix and preprocess it.  
+  2.2. Use the Gersgorin Theorem to calculate the approximate range of eigenvalues.  
+  2.3. Estimate approximate eigenvalues based on the Gersgorin Theorem (solution TBD).  
+  2.4. Apply PCA for dimensionality reduction.  
+  2.5. Output the results to the Python API for further analysis.
+
+**3. Module Division:**
+
+- Eigenvalue estimation module  
+- Dimensionality reduction module  
+- API module
+
+
+######################
 API Description
-===============
-C++ API: Provides the GersgorinEigenAppro class to implement eigenvalue approximation,
-and works with the PCAReduc class to implement dimensionality reduction.
+######################
 
-Python API: Use pybind11 to wrap C++ functions and provide high-level interfaces for users to use directly,
-such as approximate_eigenvalue(matrix) and perform_pca(matrix, n_components).
+- **C++ API:**  
+  Provides the `GersgorinEigenAppro` class to implement eigenvalue approximation,  
+  and works with the `PCAReduc` class for dimensionality reduction.
 
-Application API:If time permits, I hope to make it
-  gerNLP: version for NLP use
-  gerML: gives the version used by ML
-  gerGene: the version given to the gene bank to use
-  gerFinance: the version used by the financial model
+- **Python API:**  
+  Use `pybind11` to wrap the C++ functions and provide high-level Python interfaces,  
+  such as `approximate_eigenvalue(matrix)` and `perform_pca(matrix, n_components)`.
 
+- **Application API:**  
+  If time permits, I hope to create various versions tailored for specific applications:
+  - **gerNLP:** For NLP tasks.
+  - **gerML:** For machine learning tasks.
+  - **gerGene:** For genetic information analysis.
+  - **gerFinance:** For financial modeling.
+
+
+######################
 Engineering Infrastructure
-==========================
-Automated build system: Use CMake to set up a C++ build system, and use setuptools to build Python packages.
-Version control: Use Git for version management, and all development processes will be submitted to the GitHub project repository.
+######################
 
-========
-* Planning phase I (2 weeks from 09/16 to 9/29):survey the background knowledage, as bellow:
-  1.Matrix Theory Especially on Gersgorin-Theorem
-  2.How to narrow down the possible range of eigenvalues
-  3.Background knowledage about NLP and ML
-  4.Background knowledage about Finance and genetic information
-* Planning phase II (4 weeks from 09/30 to 10/20):Write the first stage of code, including traditional PCA and SVD methods
-  I also collect test data for each field I want to apply, and write it into a data structure that can be automatically tested 
-  so that I can verify whether this part of my code is correct.
-* Week 1 (10/21): Write preliminary architecture and simple algorithm implementation about second step
-* Week 2 (10/28): Complete the implementation and test cases of Gersgorin Theorem,
-                  and use the small matrix to test the difference between the obtained eigenvalues ​​and the actual value,
-                  and think about ways to improve it.
-* Week 3 (11/04): Complete the PCA module implementation and conduct basic testing.
-* Week 4 (11/11): Optimize memory management and try to process large-scale matrices to see 
-                  if it can run successfully under extremely large matrices.
-* Week 5 (11/18): Integrate API and complete documentation.
-* Week 6 (11/25): Try and develop mods for different applications like Finance and NLP
-* Week 7 (12/02): Correct potential problems and optimize algorithm performance.
-* Week 8 (12/09): Write reports and prepare final presentations.
+- **Automated Build System:**  
+  Use CMake to set up the C++ build system, and setuptools to build Python packages.
 
+- **Version Control:**  
+  Use Git for version management, with all development processes submitted to the GitHub repository.
+
+
+######################
+Timeline
+######################
+
+**Planning Phase I (2 weeks: 09/16 – 09/29):**  
+  - Survey background knowledge on the following topics:  
+    1. Matrix Theory (especially Gersgorin Theorem)  
+    2. Eigenvalue approximation techniques  
+    3. Background knowledge in NLP, ML, finance, and genetic information
+
+**Planning Phase II (4 weeks: 09/30 – 10/20):**  
+  - Write the first stage of code, including traditional PCA and SVD methods.
+  - Collect test data for each field, and write a data structure for automatic testing to verify the correctness of the code.
+
+**Week 1 (10/21):**  
+  - Write preliminary architecture and simple algorithm for the second step.
+
+**Week 2 (10/28):**  
+  - Complete the implementation and test cases of the Gersgorin Theorem.
+  - Test on small matrices to compare the approximate eigenvalues with actual values, and brainstorm improvements.
+
+**Week 3 (11/04):**  
+  - Complete the PCA module implementation and conduct basic testing.
+
+**Week 4 (11/11):**  
+  - Optimize memory management and attempt to process large-scale matrices, verifying if it can run successfully with extremely large inputs.
+
+**Week 5 (11/18):**  
+  - Integrate the API and complete documentation.
+
+**Week 6 (11/25):**  
+  - Develop specialized modules for applications in Finance and NLP.
+
+**Week 7 (12/02):**  
+  - Identify and correct potential problems, optimizing algorithm performance.
+
+**Week 8 (12/09):**  
+  - Write the final report and prepare for presentations.
+
+
+######################
 References
-==========
-1.Matrix Theory - basic results and techiques 2nd edition by Fuzhen Zhang
+######################
 
-
+1. Fuzhen Zhang, **Matrix Theory: Basic Results and Techniques, 2nd Edition**
