@@ -165,7 +165,7 @@ std::tuple<Matrix, Matrix, Matrix> svd_jacobi(const Matrix &A,bool use_strassen)
         // Step 1: Compute ATA and perform eigen decomposition
         Matrix ATA(n,n);
         if(use_strassen){
-            ATA = strassen_matrix_multiply(A.transpose(), A, 64);
+            ATA = strassen_matrix_multiply(A.transpose(), A, 32);
         }else{
             ATA = matrix_multiply_naive(A.transpose(), A); // ATA = A^T * A
         }
@@ -187,7 +187,7 @@ std::tuple<Matrix, Matrix, Matrix> svd_jacobi(const Matrix &A,bool use_strassen)
             }
         }
         if(use_strassen){
-            U = strassen_matrix_multiply(A, strassen_matrix_multiply(V,Sigma_inv,64),64);
+            U = strassen_matrix_multiply(A, strassen_matrix_multiply(V,Sigma_inv,32),32);
         }else{
             U = matrix_multiply_naive(A, matrix_multiply_naive(V, Sigma_inv));
         }

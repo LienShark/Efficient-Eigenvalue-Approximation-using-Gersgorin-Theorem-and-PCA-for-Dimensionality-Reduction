@@ -1,6 +1,6 @@
 # 編譯器設定
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -O3 -fPIC
+CXXFLAGS = -std=c++17 -Wall -O3 -fPIC -mavx -mfma
 PYBIND11_INC = $(shell python3 -m pybind11 --includes)
 PYTHON_INC = $(shell python3-config --includes)
 PYTHON_LDFLAGS = $(shell python3-config --ldflags)

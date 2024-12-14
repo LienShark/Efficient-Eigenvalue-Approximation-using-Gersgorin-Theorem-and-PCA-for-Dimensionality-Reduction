@@ -6,12 +6,8 @@
 #include <tuple>
 #include <algorithm>
 #include <cmath>
+#include <sstream>
 using namespace std;
-enum class MultiplicationMethod {
-    Naive,
-    Strassen,
-    TiledNaive
-};
 
 class Matrix{
 private:
@@ -24,7 +20,6 @@ public:
     Matrix(size_t nrow, size_t ncol,const vector<double> &v);
     Matrix(const Matrix &m);
     ~Matrix();
-
     size_t index(size_t i, size_t j) const;
     size_t nrow() const;
     size_t ncol() const;
@@ -49,3 +44,18 @@ Matrix submatrix(const Matrix &matrix, size_t row_start, size_t col_start, size_
 // 在 SVD.hpp 或 Matrix.hpp 中
 Matrix strassen_recursive(const Matrix &A, const Matrix &B, size_t block_size);
 Matrix strassen_matrix_multiply(const Matrix &m1, const Matrix &m2, size_t block_size);
+Matrix matrix_multiply_simd(const Matrix &A, const Matrix &B);
+
+#include <iostream>
+
+inline void print_matrix(const Matrix &matrix, const std::string &name = "") {
+    if (!name.empty()) {
+        std::cout << "Matrix " << name << ":" << std::endl;
+    }
+    for (size_t i = 0; i < matrix.nrow(); ++i) {
+        for (size_t j = 0; j < matrix.ncol(); ++j) {
+            std::cout << matrix(i, j) << " ";
+        }
+        std::cout << std::endl;
+    }
+}

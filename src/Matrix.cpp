@@ -1,6 +1,7 @@
 #include "include/Matrix.hpp"
 #include "include/SVD.hpp"
 #include "include/PCA.hpp"
+#include "include/SIMD_Optimized.hpp"
 #include <stdexcept>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -349,6 +350,16 @@ PYBIND11_MODULE(Matrix, m) {
     })
     .def_property_readonly("nrow", &Matrix::nrow)
     .def_property_readonly("ncol", &Matrix::ncol)
+    .def("__str__", [](const Matrix &mat) {
+            std::ostringstream oss;
+            for (size_t i = 0; i < mat.nrow(); ++i) {
+                for (size_t j = 0; j < mat.ncol(); ++j) {
+                    oss << mat(i, j) << " ";
+                }
+                oss << "\n";
+            }
+            return oss.str();
+        })
     .def("__eq__", &Matrix::operator ==);
 
     m.def("matrix_multiply_naive", &matrix_multiply_naive, "");
@@ -358,4 +369,6 @@ PYBIND11_MODULE(Matrix, m) {
     m.def("PCA" , &PCA , "Perform PCA");
     m.def("Submatrix" , &submatrix , "Cut submatrix");
     m.def("Strassen" , &strassen_matrix_multiply , "Perform matrix multplication by strassen");
+    m.def("simd_matrix_multiply", &matrix_multiply_simd, "Perform matrix multiplication using SIMD optimization");
+    m.def("svd_jacobi_simd" , &svd_jacobi_simd , "Perform SVD using SIMD");
 }
