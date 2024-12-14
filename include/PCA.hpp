@@ -7,6 +7,6 @@
 
 Matrix compute_mean(const Matrix &data);
 Matrix center_data(const Matrix &data, const Matrix &mean);
-std::tuple<Matrix, Matrix> PCA(const Matrix &data, size_t num_components);
+std::tuple<Matrix, Matrix> PCA(const Matrix &data, size_t num_components,bool use_strassen = false);
 
 #endif

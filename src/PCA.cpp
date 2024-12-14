@@ -1,4 +1,4 @@
-#include "PCA.hpp"
+#include "include/PCA.hpp"
 //計算每一行的平均
 Matrix compute_mean(const Matrix &data) {
     size_t rows = data.nrow();
@@ -30,11 +30,16 @@ Matrix center_data(const Matrix &data, const Matrix &mean) {
 }
 
 // Perform PCA
-std::tuple<Matrix, Matrix> PCA(const Matrix &data, size_t num_components) {
+std::tuple<Matrix, Matrix> PCA(const Matrix &data, size_t num_components,bool use_strassen) {
     Matrix mean = compute_mean(data);
     Matrix centered_data = center_data(data, mean);
     //計算convariance matrix
-    Matrix covariance = matrix_multiply_naive(centered_data.transpose(), centered_data);
+    Matrix covariance;
+    if(use_strassen){
+        covariance = strassen_matrix_multiply(centered_data.transpose(), centered_data , 64);
+    }else{
+        covariance = matrix_multiply_naive(centered_data.transpose(), centered_data);
+    }
     covariance = covariance * (1.0 / data.nrow());
 
     Matrix U, S, V;
@@ -47,15 +52,18 @@ std::tuple<Matrix, Matrix> PCA(const Matrix &data, size_t num_components) {
         }
     }
 
-    double total_variance = 0.0;
-    for (size_t i = 0; i < S.nrow(); ++i) {
-        total_variance += S(i, i);
-    }
+    // double total_variance = 0.0;
+    // for (size_t i = 0; i < S.nrow(); ++i) {
+    //     total_variance += S(i, i);
+    // }
 
-    Matrix explained_variance_ratio(1, num_components);
+    // Matrix explained_variance_ratio(1, num_components);
+    // for (size_t i = 0; i < num_components; ++i) {
+    //     explained_variance_ratio(0, i) = S(i, i) / total_variance;
+    // }
+    Matrix explained_variance(1, num_components);
     for (size_t i = 0; i < num_components; ++i) {
-        explained_variance_ratio(0, i) = S(i, i) / total_variance;
+        explained_variance(0, i) = S(i, i); // 使用原始特徵值
     }
-
-    return {principal_components, explained_variance_ratio};
+    return {principal_components, explained_variance};
 }

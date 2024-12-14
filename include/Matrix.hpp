@@ -7,6 +7,11 @@
 #include <algorithm>
 #include <cmath>
 using namespace std;
+enum class MultiplicationMethod {
+    Naive,
+    Strassen,
+    TiledNaive
+};
 
 class Matrix{
 private:
@@ -40,3 +45,7 @@ public:
     Matrix operator*(double scalar) const;
 };
 Matrix matrix_multiply_naive(Matrix const &m1, Matrix const &m2);
+Matrix submatrix(const Matrix &matrix, size_t row_start, size_t col_start, size_t row_end, size_t col_end);
+// 在 SVD.hpp 或 Matrix.hpp 中
+Matrix strassen_recursive(const Matrix &A, const Matrix &B, size_t block_size);
+Matrix strassen_matrix_multiply(const Matrix &m1, const Matrix &m2, size_t block_size);

@@ -1,4 +1,4 @@
-#include "SVD.hpp"
+#include "include/SVD.hpp"
 #include <cmath>
 #include <stdexcept>
 #include <tuple>
@@ -16,7 +16,7 @@ std::tuple<Matrix, Matrix, Matrix> jacobi_eigen(const Matrix &m) {
     Matrix S = m; // 複製輸入矩陣
 
     const double epsilon = 1e-10; // 收斂閾值
-    const size_t max_iter = 1000;
+    const size_t max_iter = 1000000;
 
     // 初始化 U 和 V 為單位矩陣
     for (size_t i = 0; i < n; ++i) {
@@ -155,7 +155,7 @@ Matrix concatenate_columns(const Matrix &A, const Matrix &B) {
 }
 
 
-std::tuple<Matrix, Matrix, Matrix> svd_jacobi(const Matrix &A) {
+std::tuple<Matrix, Matrix, Matrix> svd_jacobi(const Matrix &A,bool use_strassen) {
     size_t m = A.nrow();
     size_t n = A.ncol();
 
@@ -164,7 +164,12 @@ std::tuple<Matrix, Matrix, Matrix> svd_jacobi(const Matrix &A) {
     if (m >= n) {
         // Step 1: Compute ATA and perform eigen decomposition
         Matrix ATA(n,n);
-        ATA = matrix_multiply_naive(A.transpose(), A); // ATA = A^T * A
+        if(use_strassen){
+            ATA = strassen_matrix_multiply(A.transpose(), A, 64);
+        }else{
+            ATA = matrix_multiply_naive(A.transpose(), A); // ATA = A^T * A
+        }
+        
         std::tie(V, S, std::ignore) = jacobi_eigen(ATA);
 
         // Step 2: Expand S to m x n
@@ -181,8 +186,12 @@ std::tuple<Matrix, Matrix, Matrix> svd_jacobi(const Matrix &A) {
                 Sigma_inv(i, i) = 1.0 / S_expanded(i, i);
             }
         }
-        U = matrix_multiply_naive(A, matrix_multiply_naive(V, Sigma_inv));
-
+        if(use_strassen){
+            U = strassen_matrix_multiply(A, strassen_matrix_multiply(V,Sigma_inv,64),64);
+        }else{
+            U = matrix_multiply_naive(A, matrix_multiply_naive(V, Sigma_inv));
+        }
+        
         // Step 4: Compute null space of A^T for additional columns of U
         if (m > n) {
             Matrix AT = A.transpose();
@@ -192,7 +201,13 @@ std::tuple<Matrix, Matrix, Matrix> svd_jacobi(const Matrix &A) {
 
     } else {
         // For m < n, handle the dual case
-        Matrix AAT = matrix_multiply_naive(A, A.transpose()); // AAT = A * A^T
+        Matrix AAT(m,m);
+        if(use_strassen){
+            AAT = strassen_matrix_multiply(A,A.transpose(),64);
+        }else{
+            AAT = matrix_multiply_naive(A, A.transpose()); // AAT = A * A^T
+        }
+        
         std::tie(U, S, std::ignore) = jacobi_eigen(AAT);
 
         // Expand S to m x n
@@ -209,7 +224,12 @@ std::tuple<Matrix, Matrix, Matrix> svd_jacobi(const Matrix &A) {
                 Sigma_inv(i, i) = 1.0 / S_expanded(i, i);
             }
         }
-        V = matrix_multiply_naive(A.transpose(), matrix_multiply_naive(U, Sigma_inv));
+        if(use_strassen){
+            V = strassen_matrix_multiply(A.transpose() , strassen_matrix_multiply(U, Sigma_inv , 64),64);
+        }else{
+            V = matrix_multiply_naive(A.transpose(), matrix_multiply_naive(U, Sigma_inv));
+        }
+        
 
         // Append additional columns to V for n > m
         if (n > m) {

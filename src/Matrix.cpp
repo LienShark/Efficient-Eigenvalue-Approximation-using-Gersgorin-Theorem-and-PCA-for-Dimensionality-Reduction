@@ -1,6 +1,6 @@
-#include "Matrix.hpp"
-#include "SVD.hpp"
-#include "PCA.hpp"
+#include "include/Matrix.hpp"
+#include "include/SVD.hpp"
+#include "include/PCA.hpp"
 #include <stdexcept>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
@@ -185,46 +185,6 @@ Matrix matrix_multiply_naive_tile(Matrix const &m1, Matrix const &m2, std::size_
 
 }
 
-Matrix matrix_multiply_naive_cache_optimized_tile_thread(const Matrix &m1, const Matrix &m2, size_t block_size) {
-    if (m1.ncol() != m2.nrow()) {
-        throw std::invalid_argument("matrix size does not match");
-    }
-
-    Matrix m2_transposed = m2.transpose();
-    Matrix result(m1.nrow(), m2.ncol());
-
-    size_t num_threads = std::thread::hardware_concurrency();
-    
-    std::vector<std::thread> threads(min(num_threads, m1.nrow()));
-
-    for (size_t t = 0; t < num_threads; t++) {
-        threads[t] = std::thread([&](size_t thread_id) {
-            size_t start_row = (thread_id * m1.nrow()) / num_threads;
-            size_t end_row = ((thread_id + 1) * m1.nrow()) / num_threads;
-
-            for (size_t i = start_row; i < end_row; i += block_size) {
-                for (size_t j = 0; j < m2_transposed.nrow(); j += block_size) {
-                    for (size_t k = 0; k < m1.ncol(); k += block_size) {
-                        for (size_t ii = i; ii < std::min(i + block_size, m1.nrow()); ii++) {
-                            for (size_t jj = j; jj < std::min(j + block_size, m2_transposed.nrow()); jj++) {
-                                for (size_t kk = k; kk < std::min(k + block_size, m1.ncol()); kk++) {
-                                    result(ii, jj) += m1(ii, kk) * m2_transposed(jj, kk);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }, t);
-    }
-
-    for (size_t t = 0; t < num_threads; t++) {
-        threads[t].join();
-    }
-
-    return result;
-}
-
 Matrix Matrix::sqrt() const {
     Matrix result(m_nrow, m_ncol);
     for (size_t i = 0; i < m_nrow * m_ncol; ++i) {
@@ -255,6 +215,124 @@ Matrix Matrix::operator*(double scalar) const {
     return result;
 }
 
+Matrix submatrix(const Matrix &matrix, size_t row_start, size_t col_start, size_t row_end, size_t col_end) {
+    // 檢查範圍
+    if (row_end > matrix.nrow() || col_end > matrix.ncol()) {
+        throw std::out_of_range("Submatrix indices are out of range");
+    }
+    if (row_start >= row_end || col_start >= col_end) {
+        throw std::invalid_argument("Invalid submatrix range");
+    }
+
+    // 計算子矩陣的大小
+    size_t sub_rows = row_end - row_start;
+    size_t sub_cols = col_end - col_start;
+    Matrix submatrix(sub_rows, sub_cols);
+
+    // 複製對應的值到子矩陣
+    for (size_t i = 0; i < sub_rows; ++i) {
+        for (size_t j = 0; j < sub_cols; ++j) {
+            submatrix(i, j) = matrix(row_start + i, col_start + j); // 使用 operator() 存取數據
+        }
+    }
+
+    return submatrix;
+}
+
+
+Matrix strassen_matrix_multiply(const Matrix &m1, const Matrix &m2, size_t block_size) {
+    if (m1.ncol() != m2.nrow()) {
+        throw std::invalid_argument("Matrix size does not match");
+    }
+
+    // 確保矩陣為正方形且大小為 2 的冪次
+    size_t n = std::max({m1.nrow(), m1.ncol(), m2.ncol()});
+    size_t new_size = 1;
+    while (new_size < n) {
+        new_size *= 2; // 找到最近的 2 的冪次
+    }
+
+    // 將矩陣填充為正方形矩陣
+    Matrix A_padded(new_size, new_size);
+    Matrix B_padded(new_size, new_size);
+
+    // 填充 A 和 B
+    for (size_t i = 0; i < m1.nrow(); ++i) {
+        for (size_t j = 0; j < m1.ncol(); ++j) {
+            A_padded(i, j) = m1(i, j);
+        }
+    }
+    for (size_t i = 0; i < m2.nrow(); ++i) {
+        for (size_t j = 0; j < m2.ncol(); ++j) {
+            B_padded(i, j) = m2(i, j);
+        }
+    }
+
+    // 執行 Strassen 演算法
+    Matrix C_padded = strassen_recursive(A_padded, B_padded, block_size);
+
+    // 提取原始大小的結果
+    Matrix result(m1.nrow(), m2.ncol());
+    for (size_t i = 0; i < result.nrow(); ++i) {
+        for (size_t j = 0; j < result.ncol(); ++j) {
+            result(i, j) = C_padded(i, j);
+        }
+    }
+
+    return result;
+}
+
+Matrix strassen_recursive(const Matrix &A, const Matrix &B, size_t block_size) {
+    size_t n = A.nrow();
+
+    // 當矩陣大小小於 block_size 時，使用基本乘法
+    if (n <= block_size) {
+        return matrix_multiply_naive_tile(A, B, block_size);
+    }
+
+    size_t half = n / 2;
+
+    // 分割矩陣
+    Matrix A11 = submatrix(A, 0, 0, half, half);
+    Matrix A12 = submatrix(A, 0, half, half, n);
+    Matrix A21 = submatrix(A, half, 0, n, half);
+    Matrix A22 = submatrix(A, half, half, n, n);
+
+    Matrix B11 = submatrix(B, 0, 0, half, half);
+    Matrix B12 = submatrix(B, 0, half, half, n);
+    Matrix B21 = submatrix(B, half, 0, n, half);
+    Matrix B22 = submatrix(B, half, half, n, n);
+
+    // Strassen 的 7 個子矩陣
+    Matrix M1 = strassen_recursive(A11 + A22, B11 + B22, block_size);
+    Matrix M2 = strassen_recursive(A21 + A22, B11, block_size);
+    Matrix M3 = strassen_recursive(A11, B12 - B22, block_size);
+    Matrix M4 = strassen_recursive(A22, B21 - B11, block_size);
+    Matrix M5 = strassen_recursive(A11 + A12, B22, block_size);
+    Matrix M6 = strassen_recursive(A21 - A11, B11 + B12, block_size);
+    Matrix M7 = strassen_recursive(A12 - A22, B21 + B22, block_size);
+
+    // 合併結果
+    Matrix C11 = M1 + M4 - M5 + M7;
+    Matrix C12 = M3 + M5;
+    Matrix C21 = M2 + M4;
+    Matrix C22 = M1 - M2 + M3 + M6;
+
+    Matrix result(n, n);
+    for (size_t i = 0; i < half; ++i) {
+        for (size_t j = 0; j < half; ++j) {
+            result(i, j) = C11(i, j);
+            result(i, j + half) = C12(i, j);
+            result(i + half, j) = C21(i, j);
+            result(i + half, j + half) = C22(i, j);
+        }
+    }
+
+    return result;
+}
+
+
+
 
 PYBIND11_MODULE(Matrix, m) {
     py::class_<Matrix>(m, "Matrix")
@@ -275,8 +353,9 @@ PYBIND11_MODULE(Matrix, m) {
 
     m.def("matrix_multiply_naive", &matrix_multiply_naive, "");
     m.def("matrix_multiply_naive_tile", &matrix_multiply_naive_tile, "");
-    m.def("matrix_multiply_naive_cache_optimized_tile_thread", &matrix_multiply_naive_cache_optimized_tile_thread, "");
     m.def("svd_jacobi", &svd_jacobi, "Perform SVD using Jacobi method");
     m.def("jacobi_eigen", &jacobi_eigen, "Perform eigenvalue decomposition using Jacobi method");
     m.def("PCA" , &PCA , "Perform PCA");
+    m.def("Submatrix" , &submatrix , "Cut submatrix");
+    m.def("Strassen" , &strassen_matrix_multiply , "Perform matrix multplication by strassen");
 }
