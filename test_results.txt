@@ -4,27 +4,27 @@ Matrix Multiply by naive (Size=8): 0.000 秒
 Matrix Multiply by SIMD (Size=8): 0.000 秒
 Matrix Multiply by Strassen (Size=8): 0.000 秒
 Matrix Multiply by naive (Size=256): 0.077 秒
-Matrix Multiply by SIMD (Size=256): 0.071 秒
-Matrix Multiply by Strassen (Size=256): 0.073 秒
-Matrix Multiply by naive (Size=1024): 8.197 秒
-Matrix Multiply by SIMD (Size=1024): 3.781 秒
-Matrix Multiply by Strassen (Size=1024): 3.680 秒
-Matrix Multiply by naive (Size=2048): 95.106 秒
-Matrix Multiply by SIMD (Size=2048): 30.620 秒
-Matrix Multiply by Strassen (Size=2048): 23.741 秒
+Matrix Multiply by SIMD (Size=256): 0.073 秒
+Matrix Multiply by Strassen (Size=256): 0.078 秒
+Matrix Multiply by naive (Size=1024): 7.889 秒
+Matrix Multiply by SIMD (Size=1024): 4.040 秒
+Matrix Multiply by Strassen (Size=1024): 3.694 秒
+Matrix Multiply by naive (Size=2048): 98.837 秒
+Matrix Multiply by SIMD (Size=2048): 30.569 秒
+Matrix Multiply by Strassen (Size=2048): 23.729 秒
 Matrix Operations Test Results
 ----------------------------------------
 PCA 使用strassen (Size=4): 0.000 秒
-PCA 使用strassen (Size=64): 0.090 秒
-PCA 使用strassen (Size=128): 0.947 秒
+PCA 使用strassen (Size=64): 0.014 秒
+PCA 使用strassen (Size=128): 0.064 秒
 Matrix Operations Test Results
 ----------------------------------------
 SVD (一般乘法) (Size=4): 0.000 秒
 SVD (Strassen) (Size=4): 0.000 秒
 SVD (SIMD) (Size=4): 0.000 秒
-SVD (一般乘法) (Size=128): 0.819 秒
-SVD (Strassen) (Size=128): 0.887 秒
+SVD (一般乘法) (Size=128): 0.053 秒
+SVD (Strassen) (Size=128): 0.053 秒
 SVD (SIMD) (Size=128): 0.040 秒
-SVD (一般乘法) (Size=512): 147.543 秒
-SVD (Strassen) (Size=512): 143.203 秒
-SVD (SIMD) (Size=512): 1.622 秒
+SVD (一般乘法) (Size=512): 2.798 秒
+SVD (Strassen) (Size=512): 1.708 秒
+SVD (SIMD) (Size=512): 1.612 秒

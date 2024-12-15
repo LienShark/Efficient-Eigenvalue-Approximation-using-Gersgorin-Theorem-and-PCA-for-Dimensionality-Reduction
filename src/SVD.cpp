@@ -15,7 +15,7 @@ std::tuple<Matrix, Matrix, Matrix> jacobi_eigen(const Matrix &m) {
     Matrix S = m; // 複製輸入矩陣
 
     const double epsilon = 1e-10; // 收斂閾值
-    const size_t max_iter = 1000000; //增加迭帶次數，否則大型矩陣會出錯
+    const size_t max_iter = 1000; //增加迭帶次數，否則大型矩陣會出錯
 
     // 初始化 U 和 V 為單位矩陣
     for (size_t i = 0; i < n; ++i) {
