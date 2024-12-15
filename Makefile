@@ -21,14 +21,8 @@ all: $(TARGET)
 $(TARGET): $(OBJECTS)
 	$(CXX) $(CXXFLAGS) -shared $(OBJECTS) -o $@ $(PYTHON_LDFLAGS)
 
-# 編譯各個 .o 檔案
-# %.o: %.cpp
-# 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
-
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(INCDIR)/%.hpp
 	@mkdir -p $(OBJDIR)
 	$(CXX) $(CXXFLAGS) $(INCLUDES) -c $< -o $@
-
-# 清理
 clean:
-	rm -rf $(OBJDIR) $(BINDIR)
+	rm -rf $(OBJDIR) $(TARGET)

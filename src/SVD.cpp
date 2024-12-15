@@ -169,7 +169,7 @@ std::tuple<Matrix, Matrix, Matrix> svd_jacobi(const Matrix &A,bool use_strassen)
             ATA = matrix_multiply_naive(A.transpose(), A); // ATA = A^T * A
         }
         
-        std::tie(V, S, std::ignore) = jacobi_eigen(ATA);
+        auto [V, S, unused] = jacobi_eigen(ATA);
 
         Matrix S_expanded(m, n, 0.0);//S要是m*n但jacobi只會返回n*n的matrix，要自行添加row數
         for (size_t i = 0; i < n; ++i) {
@@ -205,7 +205,7 @@ std::tuple<Matrix, Matrix, Matrix> svd_jacobi(const Matrix &A,bool use_strassen)
             AAT = matrix_multiply_naive(A, A.transpose());
         }
         
-        std::tie(U, S, std::ignore) = jacobi_eigen(AAT);
+        auto [U, S, unused] = jacobi_eigen(AAT);
 
         Matrix S_expanded(m, n, 0.0);
         for (size_t i = 0; i < m; ++i) {
