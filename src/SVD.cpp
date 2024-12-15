@@ -4,7 +4,6 @@
 #include <tuple>
 #include <algorithm>
 
-// 重新定義 jacobi_eigen，增加排序部分
 std::tuple<Matrix, Matrix, Matrix> jacobi_eigen(const Matrix &m) {
     if (m.nrow() != m.ncol()) {
         throw std::invalid_argument("Jacobi SVD requires a square matrix.");
@@ -16,7 +15,7 @@ std::tuple<Matrix, Matrix, Matrix> jacobi_eigen(const Matrix &m) {
     Matrix S = m; // 複製輸入矩陣
 
     const double epsilon = 1e-10; // 收斂閾值
-    const size_t max_iter = 1000000;
+    const size_t max_iter = 1000000; //增加迭帶次數，否則大型矩陣會出錯
 
     // 初始化 U 和 V 為單位矩陣
     for (size_t i = 0; i < n; ++i) {
@@ -114,10 +113,10 @@ Matrix compute_null_space(const Matrix &A) {
     Matrix V, S;
     std::tie(V, S, std::ignore) = jacobi_eigen(ATA);
 
-    Matrix null_space(n, n - m, 0.0); // Null space has n - m dimensions
+    Matrix null_space(n, n - m, 0.0); // rank+nulity = n
     size_t col_index = 0;
 
-    for (size_t i = m; i < n; ++i) { // Start from dimension m to n
+    for (size_t i = m; i < n; ++i) { 
         for (size_t j = 0; j < n; ++j) {
             null_space(j, col_index) = V(j, i);
         }
@@ -162,7 +161,7 @@ std::tuple<Matrix, Matrix, Matrix> svd_jacobi(const Matrix &A,bool use_strassen)
     Matrix U(m,m), S(m,n), V(n,n);
 
     if (m >= n) {
-        // Step 1: Compute ATA and perform eigen decomposition
+        // 先求ATA
         Matrix ATA(n,n);
         if(use_strassen){
             ATA = strassen_matrix_multiply(A.transpose(), A, 32);
@@ -172,17 +171,16 @@ std::tuple<Matrix, Matrix, Matrix> svd_jacobi(const Matrix &A,bool use_strassen)
         
         std::tie(V, S, std::ignore) = jacobi_eigen(ATA);
 
-        // Step 2: Expand S to m x n
-        Matrix S_expanded(m, n, 0.0);
+        Matrix S_expanded(m, n, 0.0);//S要是m*n但jacobi只會返回n*n的matrix，要自行添加row數
         for (size_t i = 0; i < n; ++i) {
-            S_expanded(i, i) = std::sqrt(S(i, i)); // Take sqrt of eigenvalues
+            S_expanded(i, i) = std::sqrt(S(i, i)); 
         }
         S = S_expanded;
 
-        // Step 3: Compute U = AVS^-1
+        // U = AVS^-1
         Matrix Sigma_inv(n, n, 0.0);
         for (size_t i = 0; i < n; ++i) {
-            if (S_expanded(i, i) > 1e-10) { // Avoid division by zero
+            if (S_expanded(i, i) > 1e-10) { //避免除0
                 Sigma_inv(i, i) = 1.0 / S_expanded(i, i);
             }
         }
@@ -192,32 +190,29 @@ std::tuple<Matrix, Matrix, Matrix> svd_jacobi(const Matrix &A,bool use_strassen)
             U = matrix_multiply_naive(A, matrix_multiply_naive(V, Sigma_inv));
         }
         
-        // Step 4: Compute null space of A^T for additional columns of U
+        //U不足的從N(AT)的orthogonal basis尋找
         if (m > n) {
             Matrix AT = A.transpose();
-            Matrix null_basis = compute_null_space(AT); // Compute null space of A^T
-            U = concatenate_columns(U, null_basis);     // Append null space to U
+            Matrix null_basis = compute_null_space(AT); 
+            U = concatenate_columns(U, null_basis);     
         }
 
     } else {
-        // For m < n, handle the dual case
         Matrix AAT(m,m);
         if(use_strassen){
             AAT = strassen_matrix_multiply(A,A.transpose(),64);
         }else{
-            AAT = matrix_multiply_naive(A, A.transpose()); // AAT = A * A^T
+            AAT = matrix_multiply_naive(A, A.transpose());
         }
         
         std::tie(U, S, std::ignore) = jacobi_eigen(AAT);
 
-        // Expand S to m x n
         Matrix S_expanded(m, n, 0.0);
         for (size_t i = 0; i < m; ++i) {
             S_expanded(i, i) = std::sqrt(S(i, i));
         }
         S = S_expanded;
 
-        // Compute V = A^TUS^-1
         Matrix Sigma_inv(m, m, 0.0);
         for (size_t i = 0; i < m; ++i) {
             if (S_expanded(i, i) > 1e-10) {
@@ -230,14 +225,11 @@ std::tuple<Matrix, Matrix, Matrix> svd_jacobi(const Matrix &A,bool use_strassen)
             V = matrix_multiply_naive(A.transpose(), matrix_multiply_naive(U, Sigma_inv));
         }
         
-
-        // Append additional columns to V for n > m
         if (n > m) {
-            Matrix A_null = compute_null_space(A); // Compute null space of A
-            V = concatenate_columns(V, A_null);   // Append null space to V
+            Matrix A_null = compute_null_space(A); 
+            V = concatenate_columns(V, A_null);  
         }
     }
-
     return {U, S, V};
 }
 

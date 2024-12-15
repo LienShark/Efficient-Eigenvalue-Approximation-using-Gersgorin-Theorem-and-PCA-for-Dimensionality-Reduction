@@ -32,9 +32,6 @@ public:
     Matrix operator-(const Matrix &m);
     Matrix& operator=(const Matrix &m);
     Matrix transpose() const;
-    // std::tuple<Matrix, Matrix, Matrix> jacobi_eigen(const Matrix &m);
-    // std::tuple<Matrix, Matrix, Matrix> svd_jacobi(const Matrix &m);
-    // Matrix multiply(const Matrix &m) const;
     Matrix sqrt() const;
     Matrix inverse() const;
     Matrix operator*(double scalar) const;

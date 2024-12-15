@@ -48,95 +48,224 @@ Matrix matrix_multiply_simd(const Matrix &A, const Matrix &B) {
     return result;
 }
 
-// SIMD 优化的对称矩阵 SVD (基于特征值分解)
+// // Jacobi 方法的 SIMD 優化
+// std::tuple<Matrix, Matrix, Matrix> jacobi_eigen_simd(const Matrix &m) {
+//     if (m.nrow() != m.ncol()) {
+//         throw std::invalid_argument("Jacobi SVD requires a square matrix.");
+//     }
+
+//     const size_t n = m.nrow();
+//     Matrix U(n, n, 0.0);
+//     Matrix V(n, n, 0.0);
+//     Matrix S = m; // Copy input matrix
+
+//     const double epsilon = 1e-10; // Convergence threshold
+//     const size_t max_iter = 1000000;
+
+//     // Initialize U and V as identity matrices
+//     for (size_t i = 0; i < n; ++i) {
+//         U(i, i) = 1.0;
+//         V(i, i) = 1.0;
+//     }
+
+//     for (size_t iter = 0; iter < max_iter; ++iter) {
+//         double max_offdiag = 0.0;
+//         size_t p = 0, q = 0;
+
+//         // Find the largest off-diagonal absolute value
+//         for (size_t i = 0; i < n; ++i) {
+//             for (size_t j = i + 1; j < n; ++j) {
+//                 if (std::abs(S(i, j)) > max_offdiag) {
+//                     max_offdiag = std::abs(S(i, j));
+//                     p = i;
+//                     q = j;
+//                 }
+//             }
+//         }
+
+//         if (max_offdiag < epsilon) {
+//             break; // Converged
+//         }
+
+//         // Compute rotation angle
+//         double tau = (S(q, q) - S(p, p)) / (2.0 * S(p, q));
+//         double t = (tau > 0 ? 1.0 : -1.0) / (std::abs(tau) + std::sqrt(1.0 + tau * tau));
+//         double cos_phi = 1.0 / std::sqrt(1.0 + t * t);
+//         double sin_phi = t * cos_phi;
+
+//         // SIMD-friendly variables
+//         __m256d cos_vec = _mm256_set1_pd(cos_phi);
+//         __m256d sin_vec = _mm256_set1_pd(sin_phi);
+
+//         // Update S using SIMD
+//         for (size_t i = 0; i < n; i += 4) {
+//             __m256d s_ip = _mm256_loadu_pd(&S(i, p));
+//             __m256d s_iq = _mm256_loadu_pd(&S(i, q));
+
+//             __m256d sp_new = _mm256_sub_pd(_mm256_mul_pd(cos_vec, s_ip), _mm256_mul_pd(sin_vec, s_iq));
+//             __m256d sq_new = _mm256_add_pd(_mm256_mul_pd(sin_vec, s_ip), _mm256_mul_pd(cos_vec, s_iq));
+
+//             _mm256_storeu_pd(&S(i, p), sp_new);
+//             _mm256_storeu_pd(&S(i, q), sq_new);
+//         }
+
+//         for (size_t j = 0; j < n; j += 4) {
+//             __m256d s_pj = _mm256_loadu_pd(&S(p, j));
+//             __m256d s_qj = _mm256_loadu_pd(&S(q, j));
+
+//             __m256d sp_new = _mm256_sub_pd(_mm256_mul_pd(cos_vec, s_pj), _mm256_mul_pd(sin_vec, s_qj));
+//             __m256d sq_new = _mm256_add_pd(_mm256_mul_pd(sin_vec, s_pj), _mm256_mul_pd(cos_vec, s_qj));
+
+//             _mm256_storeu_pd(&S(p, j), sp_new);
+//             _mm256_storeu_pd(&S(q, j), sq_new);
+//         }
+
+//         // Update U using SIMD
+//         for (size_t i = 0; i < n; i += 4) {
+//             __m256d u_ip = _mm256_loadu_pd(&U(i, p));
+//             __m256d u_iq = _mm256_loadu_pd(&U(i, q));
+
+//             __m256d up_new = _mm256_sub_pd(_mm256_mul_pd(cos_vec, u_ip), _mm256_mul_pd(sin_vec, u_iq));
+//             __m256d uq_new = _mm256_add_pd(_mm256_mul_pd(sin_vec, u_ip), _mm256_mul_pd(cos_vec, u_iq));
+
+//             _mm256_storeu_pd(&U(i, p), up_new);
+//             _mm256_storeu_pd(&U(i, q), uq_new);
+//         }
+
+//         // Update V using SIMD
+//         for (size_t i = 0; i < n; i += 4) {
+//             __m256d v_ip = _mm256_loadu_pd(&V(i, p));
+//             __m256d v_iq = _mm256_loadu_pd(&V(i, q));
+
+//             __m256d vp_new = _mm256_sub_pd(_mm256_mul_pd(cos_vec, v_ip), _mm256_mul_pd(sin_vec, v_iq));
+//             __m256d vq_new = _mm256_add_pd(_mm256_mul_pd(sin_vec, v_ip), _mm256_mul_pd(cos_vec, v_iq));
+
+//             _mm256_storeu_pd(&V(i, p), vp_new);
+//             _mm256_storeu_pd(&V(i, q), vq_new);
+//         }
+//     }
+
+//     // Sort singular values and adjust U and V accordingly (same as original implementation)
+//     std::vector<std::pair<double, size_t>> singular_values;
+//     for (size_t i = 0; i < n; ++i) {
+//         singular_values.emplace_back(S(i, i), i);
+//     }
+//     std::sort(singular_values.rbegin(), singular_values.rend()); // Sort in descending order
+
+//     Matrix S_sorted(n, n, 0.0);
+//     Matrix U_sorted(n, n, 0.0);
+//     Matrix V_sorted(n, n, 0.0);
+
+//     for (size_t i = 0; i < n; ++i) {
+//         size_t idx = singular_values[i].second;
+//         S_sorted(i, i) = singular_values[i].first;
+
+//         for (size_t j = 0; j < n; ++j) {
+//             U_sorted(j, i) = U(j, idx);
+//             V_sorted(j, i) = V(j, idx);
+//         }
+//     }
+
+//     return std::make_tuple(U_sorted, S_sorted, V_sorted);
+// }
+
+
+
 std::tuple<Matrix, Matrix, Matrix> svd_jacobi_simd(const Matrix &A) {
-    // 確保矩陣是方陣
-    if (A.nrow() != A.ncol()) {
-        throw std::invalid_argument("Matrix must be square for symmetric SVD.");
-    }
+    // 確保 A 為 m x n 矩陣
+    size_t m = A.nrow();
+    size_t n = A.ncol();
 
-    size_t n = A.nrow();
+    // 計算 A^T A (n x n)
+    Matrix ATA = matrix_multiply_simd(A.transpose(), A);
 
-    // 初始化 U、S 和 V 矩陣
-    Matrix U(n, n, 0.0);
-    Matrix S(n, n, 0.0);
+    // 初始化 V 為單位矩陣 (n x n)
     Matrix V(n, n, 0.0);
-
-    // 初始化 U 為單位矩陣
     for (size_t i = 0; i < n; ++i) {
-        U(i, i) = 1.0;
+        V(i, i) = 1.0;
     }
 
-    // Step 1: 計算 A^T A
-    Matrix ATA = matrix_multiply_simd(A, A);
-
-    // Step 2: 使用 Jacobi 方法對 A^T A 進行特徵值分解
-    const double epsilon = 1e-10; // 收斂閾值
-    const size_t max_iter = 1000; // 最大迭代次數
+    // Jacobi 特徵值分解 ATA
+    const double epsilon = 1e-12;
+    const size_t max_iter = 1000;
 
     for (size_t iter = 0; iter < max_iter; ++iter) {
+        // 找最大非對角元素
         double max_offdiag = 0.0;
         size_t p = 0, q = 0;
-
-        // 找到絕對值最大的非對角元素
         for (size_t i = 0; i < n; ++i) {
             for (size_t j = i + 1; j < n; ++j) {
-                if (std::abs(ATA(i, j)) > max_offdiag) {
-                    max_offdiag = std::abs(ATA(i, j));
-                    p = i;
-                    q = j;
+                double val = std::fabs(ATA(i, j));
+                if (val > max_offdiag) {
+                    max_offdiag = val;
+                    p = i; q = j;
                 }
             }
         }
 
-        // 收斂條件
         if (max_offdiag < epsilon) {
+            // 收斂
             break;
         }
 
-        // 計算旋轉角度
-        double tau = (ATA(q, q) - ATA(p, p)) / (2.0 * ATA(p, q));
-        double t = (tau > 0 ? 1.0 : -1.0) / (std::abs(tau) + std::sqrt(1.0 + tau * tau));
-        double cos_phi = 1.0 / std::sqrt(1.0 + t * t);
-        double sin_phi = t * cos_phi;
+        double app = ATA(p, p);
+        double aqq = ATA(q, q);
+        double apq = ATA(p, q);
 
-        // SIMD 旋轉矩陣更新
-        __m256d cos_vec = _mm256_set1_pd(cos_phi);
-        __m256d sin_vec = _mm256_set1_pd(sin_phi);
+        double tau = (aqq - app) / (2.0 * apq);
+        double t = (tau >= 0.0) ? 1.0 / (std::fabs(tau) + std::sqrt(1.0 + tau*tau))
+                                : -1.0 / (std::fabs(tau) + std::sqrt(1.0 + tau*tau));
+        double c = 1.0 / std::sqrt(1.0 + t*t);
+        double s = t * c;
 
-        for (size_t k = 0; k < n; k += 4) {
-            __m256d akp = _mm256_loadu_pd(&ATA(k, p));
-            __m256d akq = _mm256_loadu_pd(&ATA(k, q));
-            __m256d new_akp = _mm256_fmadd_pd(cos_vec, akp, _mm256_mul_pd(sin_vec, akq));
-            __m256d new_akq = _mm256_fnmadd_pd(sin_vec, akp, _mm256_mul_pd(cos_vec, akq));
-            _mm256_storeu_pd(&ATA(k, p), new_akp);
-            _mm256_storeu_pd(&ATA(k, q), new_akq);
+        // R 為旋轉矩陣，更新 ATA = R^T * ATA * R
+        // 先更新 ATA 的行方向: 對 i, 更新 ATA(i,p) 及 ATA(i,q)
+        for (size_t i = 0; i < n; ++i) {
+            double ip = ATA(i, p);
+            double iq = ATA(i, q);
+            ATA(i, p) = c*ip + s*iq;
+            ATA(i, q) = -s*ip + c*iq;
         }
 
-        // 更新 V
-        for (size_t k = 0; k < n; k += 4) {
-            __m256d vkp = _mm256_loadu_pd(&V(k, p));
-            __m256d vkq = _mm256_loadu_pd(&V(k, q));
-            __m256d new_vkp = _mm256_fmadd_pd(cos_vec, vkp, _mm256_mul_pd(sin_vec, vkq));
-            __m256d new_vkq = _mm256_fnmadd_pd(sin_vec, vkp, _mm256_mul_pd(cos_vec, vkq));
-            _mm256_storeu_pd(&V(k, p), new_vkp);
-            _mm256_storeu_pd(&V(k, q), new_vkq);
+        // 再更新 ATA 的列方向: 對 j, 更新 ATA(p,j) 及 ATA(q,j)
+        for (size_t j = 0; j < n; ++j) {
+            double pj = ATA(p, j);
+            double qj = ATA(q, j);
+            ATA(p, j) = c*pj + s*qj;
+            ATA(q, j) = -s*pj + c*qj;
+        }
+
+        // ATA 已更新完成 (保持對稱)
+
+        // 更新 V = V * R
+        for (size_t i = 0; i < n; ++i) {
+            double ip = V(i, p);
+            double iq = V(i, q);
+            V(i, p) = c*ip + s*iq;
+            V(i, q) = -s*ip + c*iq;
         }
     }
 
-    // Step 3: 提取奇異值
+    // 將對角線的特徵值開根號作為奇異值
+    Matrix S(n, n, 0.0);
     for (size_t i = 0; i < n; ++i) {
-        S(i, i) = std::sqrt(std::max(ATA(i, i), 0.0)); // 確保非負數
+        double val = ATA(i, i);
+        S(i, i) = (val > 0.0) ? std::sqrt(val) : 0.0;
     }
 
-    // Step 4: 計算 U = A * V * S^-1
+    // 計算 U = A * V * S^-1
     Matrix Sigma_inv(n, n, 0.0);
     for (size_t i = 0; i < n; ++i) {
-        if (S(i, i) > 1e-10) {
+        if (S(i, i) > 1e-15) {
             Sigma_inv(i, i) = 1.0 / S(i, i);
         }
     }
-    U = matrix_multiply_simd(A, matrix_multiply_simd(V, Sigma_inv));
+
+    Matrix U = matrix_multiply_simd(A, matrix_multiply_simd(V, Sigma_inv));
+
+    // 若 A 為 m x n, U 為 m x n, S 為 n x n, V 為 n x n
+    // 若需要完整的 m x m U 矩陣（若 m > n），可再填補。
+    // 這裡假設 m >= n，若 m < n，SVD 的形狀可能需要調整。
 
     return {U, S, V};
 }

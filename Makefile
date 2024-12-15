@@ -10,7 +10,7 @@ INCLUDES = -I. $(PYBIND11_INC) $(PYTHON_INC)
 SRCDIR = src
 INCDIR = include
 OBJDIR = obj
-TARGET = test/Matrix.so
+TARGET = python/Matrix.so
 SOURCES = $(wildcard $(SRCDIR)/*.cpp)
 OBJECTS = $(patsubst $(SRCDIR)/%.cpp, $(OBJDIR)/%.o, $(SOURCES))
 

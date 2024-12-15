@@ -36,7 +36,7 @@ std::tuple<Matrix, Matrix> PCA(const Matrix &data, size_t num_components,bool us
     //計算convariance matrix
     Matrix covariance;
     if(use_strassen){
-        covariance = strassen_matrix_multiply(centered_data.transpose(), centered_data , 64);
+        covariance = strassen_matrix_multiply(centered_data.transpose(), centered_data , 32);
     }else{
         covariance = matrix_multiply_naive(centered_data.transpose(), centered_data);
     }
