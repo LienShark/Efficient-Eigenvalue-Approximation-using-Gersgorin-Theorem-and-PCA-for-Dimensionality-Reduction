@@ -1,0 +1,45 @@
+name: CI Build and Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 檢出程式碼
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # 安裝必要的依賴
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3 python3-pip python3-dev g++ make
+
+    # 安裝 Python 套件（如需要）
+    - name: Install Python dependencies
+      run: |
+        pip3 install pytest pybind11 numpy
+
+    # 編譯專案
+    - name: Build project
+      run: |
+        make clean
+        make
+
+    # 執行測試
+    - name: Run tests
+      run: |
+        python3 python/unitest.py
+
+    # 顯示測試結果
+    - name: Show test results
+      if: failure()
+      run: cat test/test_results.log
